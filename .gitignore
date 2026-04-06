@@ -1,0 +1,42 @@
+# --- General ---
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# --- Environment & Sensitive ---
+.env
+.env.production
+.env.local
+Backend/.env
+Frontend/.env.production
+
+# --- Python / Backend ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+env/
+venv/
+ENV/
+.ruff_cache/
+Backend/__pycache__/
+Backend/.venv/
+Backend/.ruff_cache/
+
+# --- Node / Frontend ---
+node_modules/
+Frontend/node_modules/
+dist/
+dist-ssr/
+Frontend/dist/
+Frontend/dist-ssr/
+npm-debug.log*
+
+# --- Data & Workspace ---
+Backend/data/*.jsonl
+Backend/data/*.txt
+pipeline.txt
+*.excalidraw

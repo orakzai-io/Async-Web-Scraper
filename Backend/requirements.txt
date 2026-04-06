@@ -1,0 +1,26 @@
+# Environment & Configuration
+python-dotenv          # Load environment variables from .env file
+
+# Web Framework & Server
+fastapi                # High-performance web framework for API
+uvicorn[standard]      # ASGI server to run FastAPI
+
+# Data Validation & ORM
+pydantic               # Data validation and settings management
+sqlalchemy             # SQL Toolkit and Object Relational Mapper (ORM)
+psycopg2-binary        # PostgreSQL database adapter/driver
+
+# Web Scraping & Browser Emulation
+curl_cffi              # HTTP client with impersonation (for bot avoidance)
+tenacity               # Retry logic for network and LLM requests
+loguru                 # Modern, simplified logging
+
+# Content Extraction
+trafilatura            # Text extraction and web scraping utility
+tiktoken               # Token count estimation for OpenAI/Groq models
+
+# LLM Integration
+groq                   # Groq API client for LLM processing
+
+# Utils
+aiofiles               # Asynchronous file operations (for JSONL storage)

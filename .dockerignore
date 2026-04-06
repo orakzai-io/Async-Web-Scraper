@@ -1,0 +1,15 @@
+# Local development
+.venv
+__pycache__
+.ruff_cache
+.git
+.env
+
+# Frontend build artifacts
+Frontend/node_modules
+Frontend/dist
+
+# Backend build artifacts
+Backend/data/*.jsonl
+Backend/data/*.txt
+Backend/dist

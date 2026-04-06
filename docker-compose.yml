@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    image: scraper-backend:v1  
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Backend/data:/app/data
+    env_file:
+      - ./Backend/.env
+    environment:
+      - PORT=8000
+      - DB_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    image: scraper-frontend:v1
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
