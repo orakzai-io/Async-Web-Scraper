@@ -8,7 +8,7 @@ load_dotenv()
 
 # Database Configuration
 
- DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create Engine
 engine = create_engine(DATABASE_URL, pool_size=30, max_overflow=60, pool_timeout=60)
