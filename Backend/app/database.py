@@ -7,14 +7,8 @@ from sqlalchemy.orm import sessionmaker
 load_dotenv()
 
 # Database Configuration
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-if DB_PASSWORD:
-    DB_PASSWORD = DB_PASSWORD.strip().strip('"').strip("'")
 
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DATABASE_URL = (
-    f"postgresql+psycopg2://postgres:{DB_PASSWORD}@{DB_HOST}:5432/Scraped_Data"
-)
+ DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create Engine
 engine = create_engine(DATABASE_URL, pool_size=30, max_overflow=60, pool_timeout=60)
