@@ -106,12 +106,7 @@ async def log_requests(request: Request, call_next):
 # CORS configuration
 if not ALLOWED_ORIGINS_ENV:
     origins = [
-        "http://127.0.0.1:5500",
-        "http://localhost:5500",
-        "http://127.0.0.1:8000",
-        "http://localhost:8000",
-        "http://127.0.0.1:5173",
-        "http://localhost:5173",
+        "http://localhost"
     ]
 else:
     origins = [origin.strip() for origin in ALLOWED_ORIGINS_ENV.split(",")]

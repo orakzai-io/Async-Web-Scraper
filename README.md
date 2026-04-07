@@ -1,13 +1,3 @@
----
-title: Async Web Scraper
-emoji: 🚀
-colorFrom: red
-colorTo: pink
-sdk: docker
-pinned: false
-license: mit
----
-
 # AI-Powered Async Web Scraper
 
 A professional, high-concurrency web scraping pipeline that extracts clean text from URLs, processes it through an LLM (Groq), and stores the structured results in both JSONL and PostgreSQL.
