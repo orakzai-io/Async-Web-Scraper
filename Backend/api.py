@@ -5,7 +5,7 @@ import random
 from app.scraper_manager import ScraperManager
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pathlib import Path
 from pydantic import BaseModel
 from typing import List
@@ -113,7 +113,7 @@ DATA_DIR = Path(__file__).resolve().parent
 
 
 @router.get("/download")
-async def download_jsonl(background_tasks: BackgroundTasks):
+async def download_jsonl():
     """
     Returns the data.jsonl file as a downloadable attachment and deletes it after.
     """
@@ -125,22 +125,22 @@ async def download_jsonl(background_tasks: BackgroundTasks):
 
     log.success("Downloading data.jsonl")
 
-    # Send the file and then delete it if no other jobs are active
-    response = FileResponse(
-        path=str(file_path),
-        filename="data.jsonl",
-        media_type="application/x-ndjson",
-    )
+    # Read the file into memory first to avoid race conditions with FileResponse
+    content = file_path.read_bytes()
 
-    # Safety Check: Don't delete if another job is still writing to it
     is_any_job_active = any(
         job["status"] in ["pending", "processing"] for job in jobs.values()
     )
     if not is_any_job_active:
-        background_tasks.add_task(os.remove, str(file_path))
-        jobs.clear()  # Clear all jobs so the dashboard starts completely fresh
-        log.info("File deletion scheduled & jobs cleared: No active jobs found.")
+        file_path.unlink(missing_ok=True)
+        jobs.clear()  
+        log.info("File deleted & jobs cleared: No active jobs found.")
     else:
         log.warning("File deletion skipped: One or more jobs are currently active.")
 
-    return response
+    return Response(
+        content=content,
+        media_type="application/x-ndjson",
+        headers={"Content-Disposition": "attachment; filename=data.jsonl"},
+    )
+
