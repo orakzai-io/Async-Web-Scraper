@@ -135,8 +135,6 @@ async def download_jsonl():
         file_path.unlink(missing_ok=True)
         jobs.clear()  
         log.info("File deleted & jobs cleared: No active jobs found.")
-    else:
-        log.warning("File deletion skipped: One or more jobs are currently active.")
 
     return Response(
         content=content,
