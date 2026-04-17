@@ -14,7 +14,7 @@ export async function submitUrls(urls: string[]) {
 }
 
 export async function getJobs() {
-  const res = await fetch(`${API_URL}/results/all`);
+  const res = await fetch(`${API_URL}/results`);
   if (!res.ok) {
     throw new Error(`Failed to fetch jobs`);
   }
