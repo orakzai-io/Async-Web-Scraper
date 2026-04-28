@@ -18,7 +18,7 @@ class BrowserClient:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=2, min=2, max=10),
         retry=retry_if_exception_type(Exception),
-        reraise=False,
+        reraise=True,
     )
     async def request(self, url: str):
         target_browsers = ["chrome110", "chrome120", "edge101", "chrome116"]
@@ -31,27 +31,31 @@ class BrowserClient:
         return response
 
     async def fetch(self, url: str) -> str:
-        """Fetch URL and return clean HTML. Returns empty string on failure."""
+        """Fetch URL and return clean HTML. Raises exception on failure."""
         task_log = logger.bind(context="browser_client", url=url)
         try:
             response = await self.request(url)
-            if not response:
-                return ""
-
             html = response.text
             self.count += 1
 
-            # Basic Bot Detection Check
             if any(
                 term in html.lower() for term in ["cloudflare", "datadome", "captcha"]
             ):
                 task_log.warning(f"No {self.count} Bot detection triggered for {url}")
-                return ""
+                raise Exception("Bot Blocked")
             return html
 
-        except Exception:
-            task_log.exception(f"No {self.count} Failed after all retries for {url}")
-            return ""
+        except Exception as e:
+            # Categorize common errors for the scraper_manager
+            error_str = str(e).lower()
+            if "404" in error_str or "not found" in error_str:
+                raise Exception("Wrong URL: 404 Not Found")
+            if "invalid url" in error_str or "no host" in error_str or "resolve host" in error_str:
+                raise Exception("Wrong URL: Invalid address")
+            
+            task_log.error(f"No {self.count} Failed for {url}: {e}")
+            raise # Re-raise original exception if not categorized above
+
 
     async def close(self):
         await self.session.close()

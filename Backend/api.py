@@ -42,8 +42,17 @@ async def process_url(
             return result
         except Exception as e:
             log.exception(f"Error scraping {url}: {e}")
-            jobs[job_id]["urls"][url_id]["status"] = "failed"
-            return {"error": str(e), "url": url}
+            if "Bot Blocked" in str(e):
+                jobs[job_id]["urls"][url_id]["status"] = "Bot Blocked"
+            elif "Wrong URL" in str(e):
+                jobs[job_id]["urls"][url_id]["status"] = "Wrong URL"
+            elif "LLM" in str(e):
+                jobs[job_id]["urls"][url_id]["status"] = "LLM limit exceeded"
+            else:
+                jobs[job_id]["urls"][url_id]["status"] = "Failed"
+            
+            return {"error": jobs[job_id]["urls"][url_id]["status"], "url": url}
+
         finally:
             await manager.close()
 

@@ -58,6 +58,9 @@ input:focus { outline: none; border-color: var(--primary); }
 .row-pending { background: rgba(148, 163, 184, 0.05); }
 .row-pending:hover { background: rgba(148, 163, 184, 0.1) !important; }
 .jobs-table td { padding: 0.75rem; vertical-align: middle; }
+.jobs-table td:first-child { width: 50px; }
+.jobs-table td:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jobs-table td:last-child { width: 160px; white-space: nowrap; }
 .job-status { font-weight: bold; text-transform: uppercase; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; }
 .status-completed { color: #fff; background: rgba(16, 185, 129, 0.2); border: 1px solid var(--success); }
 .status-processing { color: #fff; background: rgba(245, 158, 11, 0.2); border: 1px solid var(--warning); }

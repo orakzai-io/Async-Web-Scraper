@@ -30,51 +30,57 @@ class ScraperManager:
             if not html or len(html.strip()) == 0:
                 raise ValueError(" Received empty HTML")
             task_log.info(f"[1/6]  Fetched HTML {len(html)} characters")
-        except Exception:
+        except Exception as e:
             task_log.exception(f"Worker {job_id} aborted: Failed to fetch HTML")
-            return {"error": "Failed to Fetch HTML / Bot Blocked", "url": url}
+            raise e # Propagation of "Bot Blocked" or "Wrong URL" from browser_client
+
 
         # 2) Parse
         try:
             parsed_text = await self.parser.parse(html)
             task_log.info(f"[2/6] Extracted {len(parsed_text)} characters of text")
-        except Exception:
+        except Exception as e:
             task_log.exception(f"Worker {job_id} failed to extract text")
-            return {"error": "Empty text after parsing", "url": url}
+            raise Exception(f"Failed to parse text: {e}")
+
 
         # 3) Save cleaned text
         try:
             parsed_record = self.datastore.save_parsed_data(parsed_text)
             task_log.info("[3/6] Saved cleaned text to DB")
-        except Exception:
+        except Exception as e:
             task_log.exception("[3/6] Failed to save cleaned text to DB")
-            return {"error": "Failed to save cleaned text to DB", "url": url}
+            raise Exception(f"Database error: {e}")
+
 
         # 4) LLM Extract
         try:
             data = await self.llm_extractor.make(parsed_text, url)
             task_log.info("[4/6] LLM Extraction completed")
-        except Exception:
+        except Exception as e:
             task_log.exception("[4/6] Failed to extract structured JSON from LLM")
-            return {"error": "Failed to extract LLM", "url": url}
+            raise Exception(f"LLM extraction error: {e}")
+
 
         # 5) Save data extracted data to JSONL
         try:
             await self.json_storage.save_jsonl(data)
             task_log.info("[5/6] Saved structured JSON to File: data.jsonl")
-        except Exception:
+        except Exception as e:
             task_log.exception(
                 "[5/6] Failed to save structured JSON to File: data.jsonl"
             )
-            return {"error": "Failed to save JSONL", "url": url}
+            raise Exception(f"File storage error: {e}")
+
 
         # 6) Save extracted data to DB
         try:
             self.datastore.save_llm_extraction(parsed_record.id, data, url)
             task_log.info("[6/6] Saved structured JSONL to DB")
-        except Exception:
+        except Exception as e:
             task_log.exception("[6/6] Failed to save structured JSONL to DB")
-            return {"error": "Failed to save extracted data to DB", "url": url}
+            raise Exception(f"Database extraction save error: {e}")
+
 
         task_log.success(f"Worker {job_id} has completed all operations successfully")
         return data

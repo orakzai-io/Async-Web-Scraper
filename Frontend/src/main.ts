@@ -87,19 +87,29 @@ async function submitScrape() {
 }
 
 // Polling and rendering jobs
-function getStatusHtml(status: string) {
+
+// All statuses that mean "something went wrong" — used to normalize CSS classes
+const ERROR_STATUSES = ['failed', 'Failed', 'Wrong URL', 'Bot Blocked', 'LLM limit exceeded'];
+
+function isErrorStatus(status: string): boolean {
+  return ERROR_STATUSES.includes(status) || status.startsWith('Wrong URL') || status.startsWith('Bot Blocked');
+}
+
+function getStatusHtml(status: string, displayText?: string) {
+  const label = displayText || status;
+  const cssStatus = isErrorStatus(status) ? 'failed' : status;
   let icon = '';
   if (status === 'completed') {
     icon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
   } else if (status === 'processing') {
     icon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px" class="spin-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>`;
-  } else if (status === 'failed') {
+  } else if (isErrorStatus(status)) {
     icon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
   } else if (status === 'pending') {
     icon = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
   }
 
-  return `<span class="job-status status-${status}" style="display:inline-flex; align-items:center;">${icon}${status}</span>`;
+  return `<span class="job-status status-${cssStatus}" style="display:inline-flex; align-items:center;">${icon}${label}</span>`;
 }
 
 async function fetchJobs() {
@@ -122,20 +132,25 @@ function renderJobs(jobs: Record<string, any>) {
   let allCompleted = true;
   let rowsHtml = '';
   let counter = 1;
+  let hasdata = false;
 
   for (const [, job] of entries) {
     if (job.status !== 'completed') {
-      allCompleted = false;
     }
     
     // job.urls is a map of id -> {url, status}
-    const urlTrackingList = Object.values(job.urls || {}) as {url: string, status: string}[];
-    for (const {url, status} of urlTrackingList) {
+    const urlTrackingList = Object.values(job.urls || {}) as {url: string, status: string, reason?: string}[];
+    for (const {url, status, reason} of urlTrackingList) {
+      if (status === 'completed')
+        hasdata = true;
+      allCompleted = true;
+      const displayStatus = (isErrorStatus(status) && reason) ? reason : status;
+      const rowCssClass = isErrorStatus(status) ? 'failed' : status;
       rowsHtml += `
-        <tr class="row-${status}">
+        <tr class="row-${rowCssClass}">
           <td>${counter++}</td>
           <td style="word-break: break-all;"><a href="${url}" target="_blank" style="color: var(--secondary); text-decoration: none;">${url}</a></td>
-          <td>${getStatusHtml(status)}</td>
+          <td>${getStatusHtml(status, displayStatus)}</td>
         </tr>
       `;
     }
@@ -143,7 +158,7 @@ function renderJobs(jobs: Record<string, any>) {
 
   jobsListEl.innerHTML = rowsHtml;
 
-  if (allCompleted && entries.length > 0) {
+  if (allCompleted && hasdata) {
     downloadBtn.style.display = 'inline-block';
     downloadBtn.onclick = () => {
       downloadBtn.disabled = true;

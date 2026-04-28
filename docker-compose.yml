@@ -21,9 +21,14 @@ services:
     build:
       context: ./Frontend
       dockerfile: Dockerfile
-    image: scraper-frontend:v1
+      target: build           # <--- Important: Stops at the Node stage
+    image: scraper-frontend:v1-dev
     ports:
-      - "5173:80"
+      - "5173:5173"           # <--- Map to Vite's port, not Nginx's port 80
+    volumes:
+      - ./Frontend:/app       # <--- Syncs your code changes
+      - /app/node_modules     # <--- Protects container's installed packages
+    command: npm run dev -- --host 0.0.0.0 # <--- Tells Vite to listen for Docker
     depends_on:
       - backend
     restart: unless-stopped
